@@ -3,53 +3,113 @@ RTPT class to rename your processes giving information on who is launching the
 process, and the remaining time for it.
 Created to be used with our AIML IRON table.
 """
-import datetime
+from time import time
 from setproctitle import setproctitle
 
+from collections import deque
 
-class RTPT():
-    """
-    RemainingTimeToProcessTitle
-    """
-    def __init__(self, name_initials, base_title, number_of_epochs, epoch_n=0):
-        """
-        Initialize the RTPT object
-        !!! PLEASE GIVE A SHORT PROCESS TITLE
-            (otherwise you won't be able to get the time)
-        !!! PLEASE DO NOT USE SPACE (use underscore _ instead)
 
-        parameters:
-         * name_initials: QD for Quentin Delfosse
-         * base_title: The title you want your process to have
-        The number of epochs you have in your experiment
+class RTPT:
+    def __init__(
+        self,
+        name_initials: str,
+        experiment_name: str,
+        max_iterations: int,
+        iteration_start=0,
+        moving_avg_window_size=20,
+    ):
+        """
+        Initialize the Remaining-Time-To-Process (RTPT) object.
 
+        Args:
+            name_initials (str): Name initials (e.g. "QD" for "Quentin Delfosse").
+            experiment_name (str): A unique name to identify the running experiment. Must be less than 30 characters.
+                Spaces will be replaced with underscores.
+            max_iterations (int): The maximum number of iterations.
+            iteration_start (int): The iteration at which to start (optional, default: 0).
+            moving_avg_window_size (int): The window size for the moving average for the ETA approximation (optional, default: 20).
         """
-        assert len(base_title) < 30
-        self.base_title = "@" + name_initials + "_" + base_title + "#"
-        self._last_epoch_start = None
-        self._epoch_n = epoch_n
-        self._number_of_epochs = number_of_epochs
-        setproctitle(self.base_title + "first_epoch")
+        # Some assertions upfront
+        assert (
+            len(experiment_name) < 30
+        ), f"Experiment name has to be less than 30 chars but was {len(experiment_name)}."
+        assert (
+            max_iterations > 0
+        ), f"Maximum number of iterations has to be greater than 0 but was {max_iterations}"
+        assert (
+            iteration_start >= 0
+        ), f"Starting iteration count must be equal or greater than 0 but was {iteration_start}"
 
-    def epoch_starts(self):
-        """
-        To be called at the start of the epoch
-        """
-        self._last_epoch_start = datetime.datetime.now()
-        self._epoch_n += 1
+        # Store args
+        self.name_initials = name_initials
+        self.experiment_name = experiment_name.replace(" ", "_")
+        self._current_iteration = iteration_start
+        self.max_iterations = max_iterations
 
-    def epoch_ends(self):
+        # Store time for each iterations in a deque
+        self.deque = deque(maxlen=moving_avg_window_size)
+
+        # Track end of iterations
+        self._last_iteration_time_end = None
+
+        setproctitle(self.experiment_name + "first_epoch")
+
+    def start(self):
+        """Start the internal iteration timer."""
+        self._last_iteration_time_start = time()
+
+    def step(self):
         """
-        To be called at the end of the epoch
+        Perform an update step:
+        - Measure new time for the last epoch
+        - Update deque
+        - Compute new ETA from deque
+        - Set new process title with the latest ETA
         """
-        last_epoch_duration = datetime.datetime.now() - self._last_epoch_start
-        remaining_epochs = self._number_of_epochs - self._epoch_n
-        remaining_time = str(last_epoch_duration * remaining_epochs).split(".")[0]
-        if "day" in remaining_time:
-            days = remaining_time.split(" day")[0]
-            rest = remaining_time.split(", ")[1]
-        else:
-            days = 0
-            rest = remaining_time
-        complete_title = self.base_title + f"{days}d:{rest}"
-        setproctitle(complete_title)
+        # Add the time delta of the current iteration to the deque
+        time_end = time()
+        time_delta = time_end - self._last_iteration_time_start
+        self.deque.append(time_delta)
+
+        self._update_title()
+        self._current_iteration += 1
+        self._last_iteration_time_start = time_end
+
+    def _moving_average_seconds_per_iteration(self):
+        """Compute moving average of seconds per iteration."""
+        return sum(list(self.deque)) / len(self.deque)
+
+    def _get_eta_str(self):
+        """Get the eta string in the format 'Dd:H:M:S'."""
+        # Get mean seconds per iteration
+        avg = self._moving_average_seconds_per_iteration()
+
+        # Compute the ETA based on the remaining number of iterations
+        remaining_iterations = self.max_iterations - self._current_iteration
+        c = remaining_iterations * avg
+
+        # Compute days/hours/minutes/seconds
+        days = round(c // 86400)
+        hours = round(c // 3600 % 24)
+        minutes = round(c // 60 % 60)
+        seconds = round(c % 60)
+
+        # Format
+        eta_str = f"{days}d:{hours}:{minutes}:{seconds}"
+
+        return eta_str
+
+    def _get_title(self):
+        """Get the full process title. Includes name initials, base name and ETA."""
+        # Obtain the ETA
+        eta_str = self._get_eta_str()
+
+        # Construct the title
+        title = f"@{self.name_initials}_{self.experiment_name}_#{eta_str}"
+
+        return title
+
+    def _update_title(self):
+        """Update the process title."""
+        title = self._get_title()
+        setproctitle(title)
