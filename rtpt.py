@@ -105,7 +105,7 @@ class RTPT:
         eta_str = self._get_eta_str()
 
         # Construct the title
-        title = f"@{self.name_initials}_{self.experiment_name}_#{eta_str}"
+        title = f"@{self.name_initials}_{self.experiment_name}#{eta_str}"
 
         return title
 
