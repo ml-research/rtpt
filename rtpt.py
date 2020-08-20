@@ -17,6 +17,7 @@ class RTPT:
         max_iterations: int,
         iteration_start=0,
         moving_avg_window_size=20,
+        update_interval=1,
     ):
         """
         Initialize the Remaining-Time-To-Process (RTPT) object.
@@ -28,6 +29,7 @@ class RTPT:
             max_iterations (int): The maximum number of iterations.
             iteration_start (int): The iteration at which to start (optional, default: 0).
             moving_avg_window_size (int): The window size for the moving average for the ETA approximation (optional, default: 20).
+            update_interval (int): After how many iterations the title should be updated (optional, default: 1).
         """
         # Some assertions upfront
         assert (
@@ -45,6 +47,7 @@ class RTPT:
         self.experiment_name = experiment_name.replace(" ", "_")
         self._current_iteration = iteration_start
         self.max_iterations = max_iterations
+        self.update_interval = update_interval
 
         # Store time for each iterations in a deque
         self.deque = deque(maxlen=moving_avg_window_size)
@@ -52,7 +55,9 @@ class RTPT:
         # Track end of iterations
         self._last_iteration_time_end = None
 
-        setproctitle(self.experiment_name + "first_epoch")
+        # Perform an initial title update
+        self._update_title()
+
 
     def start(self):
         """Start the internal iteration timer."""
@@ -81,6 +86,10 @@ class RTPT:
 
     def _get_eta_str(self):
         """Get the eta string in the format 'Dd:H:M:S'."""
+        # TODO: This is currently expected and hardcoded in IRON for the first iteration
+        if self._current_iteration == 0:
+            return "first_epoch"
+
         # Get mean seconds per iteration
         avg = self._moving_average_seconds_per_iteration()
 
@@ -105,11 +114,13 @@ class RTPT:
         eta_str = self._get_eta_str()
 
         # Construct the title
-        title = f"@{self.name_initials}_{self.experiment_name}_#{eta_str}"
+        title = f"@{self.name_initials}_{self.experiment_name}#{eta_str}"
 
         return title
 
     def _update_title(self):
         """Update the process title."""
         title = self._get_title()
-        setproctitle(title)
+
+        if self._current_iteration % self.update_interval == 0:
+            setproctitle(title)
