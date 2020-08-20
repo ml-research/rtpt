@@ -104,7 +104,7 @@ class RTPT:
         seconds = round(c % 60)
 
         # Format
-        eta_str = f"{days}d:{hours}:{minutes}:{seconds}"
+        eta_str = f"{days}d:{hours:>02d}h:{minutes:>02d}m:{seconds:>02d}s"
 
         return eta_str
 
