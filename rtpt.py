@@ -52,6 +52,9 @@ class RTPT:
         # Track end of iterations
         self._last_iteration_time_end = None
 
+        # Variable title part
+        self._variable_part = None
+
         # Perform an initial title update
         self._update_title()
 
@@ -60,14 +63,20 @@ class RTPT:
         """Start the internal iteration timer."""
         self._last_iteration_time_start = time()
 
-    def step(self):
+    def step(self, subtitle=None):
         """
         Perform an update step:
         - Measure new time for the last epoch
         - Update deque
         - Compute new ETA from deque
         - Set new process title with the latest ETA
+
+        Args:
+            subtitle (str): Variable part of the title that can be updated in each step (optional, default: None). If None, it doesn't appear at all.
         """
+        # Update subtitle
+        self._variable_part = subtitle
+
         # Add the time delta of the current iteration to the deque
         time_end = time()
         time_delta = time_end - self._last_iteration_time_start
@@ -111,7 +120,10 @@ class RTPT:
         eta_str = self._get_eta_str()
 
         # Construct the title
-        title = f"@{self.name_initials}_{self.experiment_name}#{eta_str}"
+        if self._variable_part is None:
+            title = f"@{self.name_initials}_{self.experiment_name}#{eta_str}"
+        else:
+            title = f"@{self.name_initials}_{self.experiment_name}_{self._variable_part}#{eta_str}"
 
         return title
 

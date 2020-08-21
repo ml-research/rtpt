@@ -16,9 +16,9 @@ rtpt.start()
 for epoch in range(100):
 
   # Perform a single experiment iteration
-  iteration()
+  loss = iteration()
   
-  # Update the RTPT
-  rtpt.step()
+  # Update the RTPT (subtitle is optional)
+  rtpt.step(subtitle=f"loss={loss:2.2f}")
 ```
 
