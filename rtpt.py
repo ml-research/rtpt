@@ -24,7 +24,7 @@ class RTPT:
 
         Args:
             name_initials (str): Name initials (e.g. "QD" for "Quentin Delfosse").
-            experiment_name (str): A unique name to identify the running experiment. Must be less than 30 characters.
+            experiment_name (str): A unique name to identify the running experiment.
                 Spaces will be replaced with underscores.
             max_iterations (int): The maximum number of iterations.
             iteration_start (int): The iteration at which to start (optional, default: 0).
@@ -32,9 +32,6 @@ class RTPT:
             update_interval (int): After how many iterations the title should be updated (optional, default: 1).
         """
         # Some assertions upfront
-        assert (
-            len(experiment_name) < 30
-        ), f"Experiment name has to be less than 30 chars but was {len(experiment_name)}."
         assert (
             max_iterations > 0
         ), f"Maximum number of iterations has to be greater than 0 but was {max_iterations}"
