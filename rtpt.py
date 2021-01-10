@@ -18,6 +18,7 @@ class RTPT:
         iteration_start=0,
         moving_avg_window_size=20,
         update_interval=1,
+        precision=2,
     ):
         """
         Initialize the Remaining-Time-To-Process (RTPT) object.
@@ -30,6 +31,7 @@ class RTPT:
             iteration_start (int): The iteration at which to start (optional, default: 0).
             moving_avg_window_size (int): The window size for the moving average for the ETA approximation (optional, default: 20).
             update_interval (int): After how many iterations the title should be updated (optional, default: 1).
+            precision (int): The Precision of the reported time (optional, default: 2).
         """
         # Some assertions upfront
         assert (
@@ -45,6 +47,7 @@ class RTPT:
         self._current_iteration = iteration_start
         self.max_iterations = max_iterations
         self.update_interval = update_interval
+        self.precision = precision
 
         # Store time for each iterations in a deque
         self.deque = deque(maxlen=moving_avg_window_size)
@@ -54,6 +57,7 @@ class RTPT:
 
         # Variable title part
         self._variable_part = None
+
 
         # Perform an initial title update
         self._update_title()
@@ -109,10 +113,15 @@ class RTPT:
         minutes = round(c // 60 % 60)
         seconds = round(c % 60)
 
-        # Format
-        eta_str = f"{days}d:{hours:>02d}h:{minutes:>02d}m:{seconds:>02d}s"
-
-        return eta_str
+        eta_str = ""
+        reported_units = 0
+        for durat, unit in zip([days, hours, minutes, seconds], ['d', 'h', 'm', 's']):
+            if durat > 0:
+                eta_str += f"{durat:>02d}{unit}:"
+                reported_units += 1
+            if reported_units == self.precision:
+                break
+        return eta_str[:-1]  # remove the last colon
 
     def _get_title(self):
         """Get the full process title. Includes name initials, base name and ETA."""

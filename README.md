@@ -1,24 +1,36 @@
 # Remaining-Time-To-Process (RTPT)
+RTPT class to rename your processes giving information on who is launching the process, and the remaining time for it.
 
-RTPT class to rename your processes giving information on who is launching the
-process, and the remaining time for it.
-Created to be used with our AIML IRON table.
+# Installation
+## Using pip
+
+	pip install rtpt
+
+# From source
+
+	git clone
+	python setup.py install
+
 
 ## Example
-``` python
-# Create RTPT object
-rtpt = RTPT(name_initials='KK', experiment_name='ScriptName', max_iterations=100)
 
-# Start the RTPT tracking
-rtpt.start()
+.. code:: python
 
-# Loop over all iterations
-for epoch in range(100):
+    from rtpt import RTPT
+    import random
+    import time
 
-  # Perform a single experiment iteration
-  loss = iteration()
-  
-  # Update the RTPT (subtitle is optional)
-  rtpt.step(subtitle=f"loss={loss:2.2f}")
-```
+    # Create RTPT object
+    rtpt = RTPT(name_initials='QD', experiment_name='TestingRTPT', max_iterations=10)
 
+    # Start the RTPT tracking
+    rtpt.start()
+
+    # Loop over all iterations
+    for epoch in range(10):
+        time.sleep(4)
+        # Perform a single experiment iteration
+        loss = random.random()
+
+        # Update the RTPT (subtitle is optional)
+        rtpt.step(subtitle=f"loss={loss:2.2f}")
