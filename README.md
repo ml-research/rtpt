@@ -18,7 +18,7 @@ RTPT class to rename your processes giving information on who is launching the p
 
 .. code:: python
 ```python
-from rtpt.rtpt import RTPT
+from rtpt import RTPT
 import random
 import time
 
