@@ -142,3 +142,4 @@ class RTPT:
 
         if self._current_iteration % self.update_interval == 0:
             setproctitle(title)
+
