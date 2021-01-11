@@ -8,8 +8,8 @@ with open("requirements.txt", "r") as fh:
 
 setuptools.setup(
     name="rtpt",
-    version="0.0.2",
-    author="Quentin Delfosse, Patrick Schramowski, Steven Lang",
+    version="0.0.3",
+    author="Quentin Delfosse, Patrick Schramowski, Steven Lang, Johannes Czech",
     author_email="quentin.delfosse@cs.tu-darmstadt.de",
     description="Remaining Time to Process Title",
     long_description=long_description,
