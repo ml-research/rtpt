@@ -4,7 +4,7 @@ import time
 import argparse
 
 # example call:
-#python3 schedule_process.py -g "0,1,2" -f /repositories/tasks/scheduleT1.txt -d "docker exec <containername> zsh -c"
+# python3 schedule_process.py -g "0,1,2" -f /repositories/tasks/scheduleT1.txt -d "docker exec <containername> zsh -c"
 # with .txt containing multiple lines of:
 # cd <workingdir> && python scripts/run.py --epochs 42
 
@@ -36,13 +36,15 @@ while len(todo_process_list) > 0:
             if len(processes) == 0:
                 # gpu is free -> start process
                 run_command = "{} \' ".format(args.docker) + todo_process_list.pop(0).replace(
-                                     "python", "CUDA_VISIBLE_DEVICES={} python".format(gpu_id)
-                                 ) + " \'"
+                    "python", "CUDA_VISIBLE_DEVICES={} python".format(gpu_id)
+                ) + " \'"
                 subprocess.Popen(run_command, shell=True,
-                                 stdout=open("./logs/{}_stdout_{}_gpuid{}.log".format(args.filename.split('/')[-1].replace('.txt', ''),
-                                                                                      time.time(), gpu_id), "w"),
-                                 stderr=open("./logs/{}_stderr_{}_gpuid{}.log".format(args.filename.split('/')[-1].replace('.txt', ''),
-                                                                                      time.time(), gpu_id), "w"))
+                                 stdout=open("./logs/{}_stdout_{}_gpuid{}.log".format(
+                                     args.filename.split('/')[-1].replace('.txt', ''),
+                                     time.time(), gpu_id), "w"),
+                                 stderr=open("./logs/{}_stderr_{}_gpuid{}.log".format(
+                                     args.filename.split('/')[-1].replace('.txt', ''),
+                                     time.time(), gpu_id), "w"))
 
                 print('Process started on gpu {}'.format(gpu_id))
             else:
@@ -51,17 +53,15 @@ while len(todo_process_list) > 0:
                     command = p['command']  # eg @PS_MCM_GPT2#0d:14:50:58
                     # print(gpu_id, command)
                     # check if rtpt is used
+                    durat_dict = {'d': 0, 'h': 0, 'm': 0, 's': 0}
                     if command[0] == '@' and 'first_epoch' not in command:
-                        remaining_time_p = command.split('#')[1] \
-                            .replace('d', '') \
-                            .replace('h', '') \
-                            .replace('m', '') \
-                            .replace('s', '') \
-                            .split(':')
-                        days = int(remaining_time_p[0])
-                        hours = days * 24 + int(remaining_time_p[1])
-                        minutes = hours * 60 + int(remaining_time_p[2])
-                        seconds = minutes * 60 + int(remaining_time_p[3])
+                        remaining_time_p = command.split('#').split(':')
+                        for durat in remaining_time_p:
+                            durat_dict[durat[-1]] = durat[:-1]
+                        days = int(durat_dict['d'].replace('>'))
+                        hours = days * 24 + int(durat_dict['h'])
+                        minutes = hours * 60 + int(durat_dict['m'])
+                        seconds = minutes * 60 + int(durat_dict['s'])
                         if seconds > remaining_time:
                             remaining_time = seconds
 
