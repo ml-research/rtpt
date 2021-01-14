@@ -13,6 +13,7 @@ parser.add_argument('-f', '--filename', type=str, required=True)
 parser.add_argument('-d', '--docker', type=str, required=True)
 parser.add_argument('-w', '--wait', type=int, default=30)
 parser.add_argument('-g', '--gpus', type=str, default='', help='available gpu ids seperated by ,')
+parser.add_argument('--rtpt', help="", action="store_true")
 args = parser.parse_args()
 
 # read process list
@@ -49,21 +50,22 @@ while len(todo_process_list) > 0:
                 print('Process started on gpu {}'.format(gpu_id))
             else:
                 remaining_time = 0
-                for p in processes:
-                    command = p['command']  # eg @PS_MCM_GPT2#0d:14:50:58
-                    # print(gpu_id, command)
-                    # check if rtpt is used
-                    durat_dict = {'d': 0, 'h': 0, 'm': 0, 's': 0}
-                    if command[0] == '@' and 'first_epoch' not in command:
-                        remaining_time_p = command.split('#').split(':')
-                        for durat in remaining_time_p:
-                            durat_dict[durat[-1]] = durat[:-1]
-                        days = int(durat_dict['d'].replace('>'))
-                        hours = days * 24 + int(durat_dict['h'])
-                        minutes = hours * 60 + int(durat_dict['m'])
-                        seconds = minutes * 60 + int(durat_dict['s'])
-                        if seconds > remaining_time:
-                            remaining_time = seconds
+                if args.rtpt:
+                    for p in processes:
+                        command = p['command']  # eg @PS_MCM_GPT2#0d:14:50:58
+                        # print(gpu_id, command)
+                        # check if rtpt is used
+                        durat_dict = {'d': 0, 'h': 0, 'm': 0, 's': 0}
+                        if command[0] == '@' and 'first_epoch' not in command:
+                            remaining_time_p = command.split('#').split(':')
+                            for durat in remaining_time_p:
+                                durat_dict[durat[-1]] = durat[:-1]
+                            days = int(durat_dict['d'].replace('>'))
+                            hours = days * 24 + int(durat_dict['h'])
+                            minutes = hours * 60 + int(durat_dict['m'])
+                            seconds = minutes * 60 + int(durat_dict['s'])
+                            if seconds > remaining_time:
+                                remaining_time = seconds
 
                 # check again as soon one gpu is free
                 remaining_time_global = min(remaining_time_global, remaining_time)
