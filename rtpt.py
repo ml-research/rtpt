@@ -93,7 +93,7 @@ class RTPT:
     def _get_eta_str(self):
         """Get the eta string in the format 'Dd:H:M:S'."""
         # TODO: This is currently expected and hardcoded in IRON for the first iteration
-        if self._current_iteration == 0:
+        if self._current_iteration == 0 or len(self.deque) == 0:
             return "first_epoch"
 
         # Get mean seconds per iteration
