@@ -1,22 +1,3 @@
-# Remaining-Time-To-Process (RTPT)
-[![PyPI version](https://badge.fury.io/py/rtpt.svg)](https://badge.fury.io/py/rtpt)
-
-RTPT class to rename your processes giving information on who is launching the process, and the remaining time for it.
-
-# Installation
-## Using pip
-
-	pip install rtpt
-
-# From source
-
-	git clone
-	python setup.py install
-
-
-## Example
-
-```python
 from rtpt import RTPT
 import random
 import time
@@ -35,4 +16,3 @@ for epoch in range(10):
 
     # Update the RTPT (subtitle is optional)
     rtpt.step(subtitle=f"loss={loss:2.2f}")
-```
