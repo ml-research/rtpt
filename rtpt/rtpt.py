@@ -42,8 +42,8 @@ class RTPT:
         ), f"Starting iteration count must be equal or greater than 0 but was {iteration_start}"
 
         # Store args
-        self.name_initials = name_initials
-        self.experiment_name = experiment_name.replace(" ", "_")
+        self.name_initials = name_initials.replace(" ", "_").replace("/", "_")
+        self.experiment_name = experiment_name.replace(" ", "_").replace("/", "_")
         self._current_iteration = iteration_start
         self.max_iterations = max_iterations
         self.update_interval = update_interval
