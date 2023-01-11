@@ -15,10 +15,11 @@ class RTPT:
         name_initials: str,
         experiment_name: str,
         max_iterations: int,
-        iteration_start=0,
-        moving_avg_window_size=20,
-        update_interval=1,
-        precision=2,
+        iteration_start: int = 0,
+        moving_avg_window_size: int = 20,
+        update_interval: int = 1,
+        precision: int = 2,
+        no_iterations: bool = False
     ):
         """
         Initialize the Remaining-Time-To-Process (RTPT) object.
@@ -32,6 +33,7 @@ class RTPT:
             moving_avg_window_size (int): The window size for the moving average for the ETA approximation (optional, default: 20).
             update_interval (int): After how many iterations the title should be updated (optional, default: 1).
             precision (int): The Precision of the reported time (optional, default: 2).
+            no_iterations (bool): If set to true no ETA will be displayed. The value of `max_iterations` will have no effect if this is set to true.
         """
         # Some assertions upfront
         assert (
@@ -48,6 +50,7 @@ class RTPT:
         self.max_iterations = max_iterations
         self.update_interval = update_interval
         self.precision = precision
+        self.no_iterations = no_iterations
 
         # Store time for each iterations in a deque
         self.deque = deque(maxlen=moving_avg_window_size)
@@ -78,6 +81,9 @@ class RTPT:
         Args:
             subtitle (str): Variable part of the title that can be updated in each step (optional, default: None). If None, it doesn't appear at all.
         """
+        if self.no_iterations:
+            raise RuntimeError("Called `step()` while `no_iterations` is set to True. If you want to display ETA set `no_iterations` to False.")
+
         # Update subtitle
         self._variable_part = subtitle
 
@@ -129,10 +135,11 @@ class RTPT:
         eta_str = self._get_eta_str()
 
         # Construct the title
-        if self._variable_part is None:
-            title = f"@{self.name_initials}_{self.experiment_name}#{eta_str}"
-        else:
-            title = f"@{self.name_initials}_{self.experiment_name}_{self._variable_part}#{eta_str}"
+        title = f"@{self.name_initials}_{self.experiment_name}"
+        if self._variable_part is not None:
+            title += f"_{self._variable_part}"
+        if eta_str and not self.no_iterations:
+            title += f"#{eta_str}"
 
         return title
 
